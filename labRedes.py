@@ -61,24 +61,55 @@ wav.write('inverse-handel.wav', fs, inverseFourierTransform)
 def truncate(value, percent):
 	return value - percent * value
 
-#Se truncan los valores de la transfomada de fourier con respecto a un 15%
+#Se copia la lista de frecuencias
+freqsAux = freqs.copy()
+
+#Se copia la lista de la transformada
+fourierTransformAux = fourierTransform.copy()
+
+#Se ordena de menor a mayor
+fourierTransformAux.sort()
+
+#Se obtiene el valor maximo
+maxValue = fourierTransformAux[-1]
+
+#Para obtener el segundo peak alto del grafico
+secondPeakValue = 0
+
+#Se recorre las frecuencias
+for index, i in enumerate(freqsAux):
+	#Se mira entre los valores 0.1 y 0.2 (Donde se encuentra el segundo peak)
+	if(i > 0.1 and i < 0.2):
+		if fourierTransform[index] > secondPeakValue:
+			#Se guarda el valor mas alto
+			secondPeakValue = fourierTransform[index]
+
+#Se truncan los valores de la transfomada de fourier con respecto a un 75%
+#Se guarda en la lista truncateValues
 truncatesValues = []
 for i in fourierTransform:
-	truncateValue = truncate(i, 0.75)
-	truncatesValues.append(truncateValue)
-
+	#Si son los valores maximos no se trunca
+	if(i == maxValue or i == secondPeakValue):
+		truncatesValues.append(i)
+	else:
+		#Se trunca los valores
+		i = truncate(i, 0.75)
+		truncatesValues.append(i)
+	
 #Se aplica la transformada de Fourier a los valores truncados
 truncateInverseFourier = inverseFourier(truncatesValues)
 
-#Se convierte a formate de 16 bits
+#Se convierte a formato de 16 bits
 inverseTruncateFourier = np.asarray(truncateInverseFourier, dtype=np.int16)
 
 #Se grafica los valores obtenidos
-plotFunction.figure("Inversa truncada de la Transformada", [7.2, 4.5])
-plotFunction.plot(audioTime, truncateInverseFourier)
-plotFunction.title('Grafico del audio truncado en el tiempo')
-plotFunction.ylabel('Amplitud')
-plotFunction.xlabel('Tiempo (s)')
+plotFunction.figure("Transformada truncada de Fourier", [7.0, 4.9])
+plotFunction.ylim([0, max(truncatesValues) + 10000000])
+plotFunction.xlim([0, max(freqs)])
+plotFunction.xlabel('Frecuencia (Hz)')
+plotFunction.ylabel('F(w)')
+plotFunction.title('Grafico en el dominio de la frecuencia')
+plotFunction.plot(freqs, truncatesValues)
 
 #Se guarda el audio truncado
 wav.write('truncate-handel.wav', fs, inverseTruncateFourier)
