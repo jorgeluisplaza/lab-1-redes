@@ -59,7 +59,7 @@ wav.write('inverse-handel.wav', fs, inverseFourierTransform)
 
 #Funcion que trunca un valor con respecto a un porcentaje
 def truncate(value, percent):
-	return value - percent * value
+	return (value - (percent * value))
 
 #Se copia la lista de frecuencias
 freqsAux = freqs.copy()
@@ -97,7 +97,7 @@ for i in fourierTransform:
 		truncatesValues.append(i)
 	
 #Se aplica la transformada de Fourier a los valores truncados
-truncateInverseFourier = inverseFourier(truncatesValues)
+truncateInverseFourier = inverseFourier(truncateNumpy)
 
 #Se convierte a formato de 16 bits
 inverseTruncateFourier = np.asarray(truncateInverseFourier, dtype=np.int16)
@@ -112,7 +112,7 @@ plotFunction.title('Grafico en el dominio de la frecuencia')
 plotFunction.plot(freqs, truncatesValues)
 
 #Se guarda el audio truncado
-wav.write('truncate-handel.wav', fs, inverseTruncateFourier)
+wav.write('truncate3-handel.wav', fs, inverseTruncateFourier)
 
 #Se muestran los graficos
 plotFunction.show()
