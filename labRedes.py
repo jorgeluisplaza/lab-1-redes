@@ -21,33 +21,27 @@ plotFunction.title('Grafico del audio original en el tiempo')
 plotFunction.ylabel('Amplitud')
 plotFunction.xlabel('Tiempo (s)')
 plotFunction.plot(audioTime, data)
-#plotFunction.show()
 
 # Calculo de la tranformada de fourier
 fourierTransform = fourier(data)
 
 # Calculo de las frecuencias (Eje X)
-freqs = frequency(len(data))
+freqs = frequency(len(data), 1.0 /fs)
 
 # Calculo de la inversa de la transformada
 inverseFourierTransform = inverseFourier(fourierTransform)
 
 # Se grafica la transformada de fourier
 plotFunction.figure("Transformada de Fourier", [7.0, 4.9])
-plotFunction.ylim([0, max(fourierTransform) + 10000000])
-plotFunction.xlim([0, max(freqs)])
 plotFunction.xlabel('Frecuencia (Hz)')
 plotFunction.ylabel('F(w)')
 plotFunction.title('Grafico en el dominio de la frecuencia')
 plotFunction.plot(freqs, fourierTransform)
-#plotFunction.show()
-
-#print(freqs.sort())
 
 # Se grafica la inversa de la transformada
 plotFunction.figure("Inversa de la Transformada", [7.2, 4.5])
 plotFunction.plot(audioTime, inverseFourierTransform)
-plotFunction.title('Grafico del audio inverso en el tiempo')
+plotFunction.title('Grafico del audio con su transformada inversa en el tiempo')
 plotFunction.ylabel('Amplitud')
 plotFunction.xlabel('Tiempo (s)')
 
@@ -73,46 +67,60 @@ fourierTransformAux.sort()
 #Se obtiene el valor maximo
 maxValue = fourierTransformAux[-1]
 
+#Se obtiene el valor maximo perteneciente a las frecuencias negativas
+maxValueNegative = fourierTransformAux[-2]
+
 #Para obtener el segundo peak alto del grafico
 secondPeakValue = 0
+
+#Para obtener el segundo peak alto del grafico del lado negativo
+secondPeakValueNegative = 0
 
 #Se recorre las frecuencias
 for index, i in enumerate(freqsAux):
 	#Se mira entre los valores 0.1 y 0.2 (Donde se encuentra el segundo peak)
-	if(i > 0.1 and i < 0.2):
+	if(i > 1000 and i < 1500):
 		if fourierTransform[index] > secondPeakValue:
 			#Se guarda el valor mas alto
 			secondPeakValue = fourierTransform[index]
+	if(i > -1500 and i < -1000):
+		if(fourierTransform[index] > secondPeakValueNegative):
+			secondPeakValueNegative = fourierTransform[index]
 
 #Se truncan los valores de la transfomada de fourier con respecto a un 75%
 #Se guarda en la lista truncateValues
 truncatesValues = []
 for i in fourierTransform:
 	#Si son los valores maximos no se trunca
-	if(i == maxValue or i == secondPeakValue):
+	if(i == maxValue or i == secondPeakValue or i == maxValueNegative or i == secondPeakValueNegative):
 		truncatesValues.append(i)
 	else:
 		#Se trunca los valores
-		i = truncate(i, 0.75)
+		i = truncate(i, 0.5)
 		truncatesValues.append(i)
 	
 #Se aplica la transformada de Fourier a los valores truncados
-truncateInverseFourier = inverseFourier(truncateNumpy)
+truncateInverseFourier = inverseFourier(truncatesValues)
 
 #Se convierte a formato de 16 bits
 inverseTruncateFourier = np.asarray(truncateInverseFourier, dtype=np.int16)
 
 #Se grafica los valores obtenidos
-plotFunction.figure("Transformada truncada de Fourier", [7.0, 4.9])
-plotFunction.ylim([0, max(truncatesValues) + 10000000])
-plotFunction.xlim([0, max(freqs)])
+plotFunction.figure("Transformada de Fourier valores truncados", [7.0, 4.9])
 plotFunction.xlabel('Frecuencia (Hz)')
 plotFunction.ylabel('F(w)')
-plotFunction.title('Grafico en el dominio de la frecuencia')
+plotFunction.title('Transformada de Fourier valores truncados')
 plotFunction.plot(freqs, truncatesValues)
 
+# Se grafica en el dominio del tiempo
+plotFunction.figure("Grafico en el dominio del tiempo truncado", [7.0, 5.3])
+plotFunction.xlabel('Frecuencia (Hz)')
+plotFunction.ylabel('F(w)')
+plotFunction.title('Grafico en el dominio del tiempo truncado')
+plotFunction.plot(audioTime, inverseTruncateFourier)
+
 #Se guarda el audio truncado
-wav.write('truncate3-handel.wav', fs, inverseTruncateFourier)
+wav.write('truncate-handel.wav', fs, inverseTruncateFourier)
 
 #Se muestran los graficos
 plotFunction.show()
